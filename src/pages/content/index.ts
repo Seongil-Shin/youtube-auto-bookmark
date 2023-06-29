@@ -1,5 +1,10 @@
+const OPTIONS = {
+  AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK"
+};
 const video = document.querySelector("video.video-stream") as HTMLMediaElement;
 const videoId = document.location.href.split("v=")[1].split("&")[0];
+
+let isOnAutoBookMark = false;
 
 function init() {
   /* FIXME : 가끔씩 아래 interval이 실행되지 않는 경우가 있음
@@ -7,7 +12,18 @@ function init() {
       case 2 : extension 설치 후 처음 시청하는 영상 or 처음부터 재생되지 않는 영상
   * */
   const intervalId = setInterval(() => {
-    if (video.played) {
+    if (chrome.runtime?.id) {
+      chrome.storage.local.get([OPTIONS.AUTO_BOOKMARk]).then((result) => {
+        if (result[OPTIONS.AUTO_BOOKMARk] === "OFF") {
+          clearInterval(intervalId);
+        } else {
+          isOnAutoBookMark = true;
+          chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARk]: "ON" });
+        }
+      });
+    }
+
+    if (isOnAutoBookMark && video.played) {
       chrome.storage.local.get([videoId]).then((result) => {
         // FIXME : 저장은 제대로 되었는데, get 결과로는 조회되지않는 경우가 있음.
         if (
@@ -28,8 +44,7 @@ init();
 function recordEndTime() {
   setInterval(() => {
     if (video?.currentTime) {
-      chrome.storage.local
-        .set({ [videoId]: Math.floor(video.currentTime) });
+      chrome.storage.local.set({ [videoId]: Math.floor(video.currentTime) });
     }
   }, 1000);
 }

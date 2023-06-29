@@ -1,0 +1,3 @@
+export const OPTIONS = {
+  AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK"
+};

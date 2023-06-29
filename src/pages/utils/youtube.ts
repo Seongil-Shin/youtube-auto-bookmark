@@ -1,22 +1,3 @@
-export function isOnYoutubeVideo() {
-  return document.location.href.includes("watch?v=") ? true : false;
-}
-
-export function getCurrentTime(video: HTMLMediaElement) {
-  return {
-    video,
-    currentTime: video ? video.currentTime : 0
-  };
-}
-
-export function getEndTime() {
-  const video: (HTMLMediaElement | null) = document.querySelector("video.video-stream");
-  if (video) {
-    return video.duration;
-  }
-  return 0;
-}
-
 export function getStartSecondsFromURL(url: string) {
   const time = url.split("&t=")[1];
   if (time) {
