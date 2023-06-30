@@ -23,17 +23,17 @@ export default defineConfig({
     alias: {
       "@src": root,
       "@assets": assetsDir,
-      "@pages": pagesDir,
-    },
+      "@pages": pagesDir
+    }
   },
   plugins: [
     react(),
     makeManifest(manifest, {
       isDev,
-      contentScriptCssKey: regenerateCacheInvalidationKey(),
+      contentScriptCssKey: regenerateCacheInvalidationKey()
     }),
     customDynamicImport(),
-    addHmr({ background: enableHmrInBackgroundScript, view: true }),
+    addHmr({ background: enableHmrInBackgroundScript, view: true })
   ],
   publicDir,
   build: {
@@ -47,10 +47,10 @@ export default defineConfig({
         devtools: resolve(pagesDir, "devtools", "index.html"),
         panel: resolve(pagesDir, "panel", "index.html"),
         content: resolve(pagesDir, "content", "index.ts"),
-        background: resolve(pagesDir, "background", "index.ts"),
+        // background: resolve(pagesDir, "background", "index.ts"),
         // contentStyle: resolve(pagesDir, "content", "style.scss"),
         popup: resolve(pagesDir, "popup", "index.html"),
-        options: resolve(pagesDir, "options", "index.html"),
+        options: resolve(pagesDir, "options", "index.html")
       },
       output: {
         entryFileNames: "src/pages/[name]/index.js",
@@ -65,10 +65,10 @@ export default defineConfig({
             return `assets/css/contentStyle${cacheInvalidationKey}.chunk.css`;
           }
           return `assets/[ext]/${name}.chunk.[ext]`;
-        },
-      },
-    },
-  },
+        }
+      }
+    }
+  }
 });
 
 function firstUpperCase(str: string) {
@@ -77,6 +77,7 @@ function firstUpperCase(str: string) {
 }
 
 let cacheInvalidationKey: string = generateKey();
+
 function regenerateCacheInvalidationKey() {
   cacheInvalidationKey = generateKey();
   return cacheInvalidationKey;

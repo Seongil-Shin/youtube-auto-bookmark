@@ -14,7 +14,7 @@ const manifest: chrome.runtime.ManifestV3 = {
   },
   content_scripts: [
     {
-      matches: ["https://*.youtube.com/watch*"],
+      matches: ["https://*.youtube.com/*"],
       js: ["src/pages/content/index.js"]
     }
   ],
@@ -31,7 +31,8 @@ const manifest: chrome.runtime.ManifestV3 = {
     }
   ],
   permissions: [
-    "storage"
+    "storage",
+    "webNavigation"
   ]
 };
 

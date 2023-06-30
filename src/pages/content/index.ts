@@ -1,16 +1,11 @@
 const OPTIONS = {
   AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK"
 };
-const video = document.querySelector("video.video-stream") as HTMLMediaElement;
-const videoId = document.location.href.split("v=")[1].split("&")[0];
 
 let isOnAutoBookMark = false;
+let intervalIdList = [];
 
-function init() {
-  /* FIXME : 가끔씩 아래 interval이 실행되지 않는 경우가 있음
-      case 1 : 영상 -> 유튜브 로고 -> 뒤로가기 시. (BFcache 의심)
-      case 2 : extension 설치 후 처음 시청하는 영상 or 처음부터 재생되지 않는 영상
-  * */
+function checkOption() {
   const intervalId = setInterval(() => {
     if (chrome.runtime?.id) {
       chrome.storage.local.get([OPTIONS.AUTO_BOOKMARk]).then((result) => {
@@ -22,29 +17,71 @@ function init() {
         }
       });
     }
+  });
+  intervalIdList.push(intervalId);
+}
 
-    if (isOnAutoBookMark && video.played) {
+checkOption();
+
+function goToLastSecond(videoId) {
+  if (!isOnAutoBookMark) {
+    return;
+  }
+
+  let video = getVideoElement();
+  const intervalId = setInterval(() => {
+    if (video === null) {
+      video = getVideoElement();
+    }
+
+    if (isOnAutoBookMark && video !== null && video.played) {
       chrome.storage.local.get([videoId]).then((result) => {
-        // FIXME : 저장은 제대로 되었는데, get 결과로는 조회되지않는 경우가 있음.
         if (
           result[videoId] !== undefined &&
           video.currentTime < result[videoId]
         ) {
           video.currentTime = result[videoId];
         }
-        recordEndTime();
+        recordEndTime(videoId);
       });
       clearInterval(intervalId);
     }
   }, 500);
+  intervalIdList.push(intervalId);
 }
 
-init();
+function recordEndTime(videoId) {
+  if (!isOnAutoBookMark) {
+    return;
+  }
 
-function recordEndTime() {
-  setInterval(() => {
-    if (video?.currentTime) {
+  let video = getVideoElement();
+  const intervalId = setInterval(() => {
+    if (video === null) {
+      video = document.querySelector("video.video-stream");
+    }
+
+    if (video !== null && video.currentTime) {
       chrome.storage.local.set({ [videoId]: Math.floor(video.currentTime) });
     }
   }, 1000);
+  intervalIdList.push(intervalId);
 }
+
+function getVideoElement() {
+  const video = document.querySelector("video.video-stream");
+  if (video === null) {
+    return null;
+  }
+  return video as HTMLMediaElement;
+}
+
+document.addEventListener("yt-navigate-finish", (e) => {
+  if (location.pathname.includes("watch")) {
+    const videoId = document.location.href.split("v=")?.at(1)?.split("&")[0];
+    goToLastSecond(videoId);
+  } else {
+    intervalIdList.map((id) => clearInterval(id));
+    intervalIdList = [];
+  }
+});
