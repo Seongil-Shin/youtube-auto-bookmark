@@ -2,6 +2,7 @@ const OPTIONS = {
   AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK"
 };
 
+let optionChecked = false;
 let isOnAutoBookMark = false;
 let intervalIdList = [];
 
@@ -15,6 +16,7 @@ function checkOption() {
           isOnAutoBookMark = true;
           chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARk]: "ON" });
         }
+        optionChecked = true;
       });
     }
   });
@@ -34,13 +36,11 @@ function goToLastSecond(videoId) {
       video = getVideoElement();
     }
 
-    if (isOnAutoBookMark && video !== null && video.played) {
+    if (video !== null && video.played) {
       chrome.storage.local.get([videoId]).then((result) => {
-        if (
-          result[videoId] !== undefined &&
-          video.currentTime < result[videoId]
-        ) {
-          video.currentTime = result[videoId];
+        const savedTime = result[videoId];
+        if (savedTime && video.currentTime < savedTime) {
+          video.currentTime = savedTime;
         }
         recordEndTime(videoId);
       });
@@ -62,6 +62,10 @@ function recordEndTime(videoId) {
     }
 
     if (video !== null && video.currentTime) {
+      // 영상 마지막 부근이면, 시작 지점 저장
+      if (video.duration - 5 <= video.currentTime) {
+        return chrome.storage.local.set({ [videoId]: 0 });
+      }
       chrome.storage.local.set({ [videoId]: Math.floor(video.currentTime) });
     }
   }, 1000);
@@ -85,3 +89,14 @@ document.addEventListener("yt-navigate-finish", (e) => {
     intervalIdList = [];
   }
 });
+
+// 처음 접속 시 영상 재생 화면이면 바로 실행
+if (location.pathname.includes("watch")) {
+  const videoId = document.location.href.split("v=")?.at(1)?.split("&")[0];
+  const intervalId = setInterval(() => {
+    if (optionChecked) {
+      goToLastSecond(videoId);
+      clearInterval(intervalId);
+    }
+  }, 500);
+}
