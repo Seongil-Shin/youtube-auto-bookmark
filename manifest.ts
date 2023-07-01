@@ -31,8 +31,7 @@ const manifest: chrome.runtime.ManifestV3 = {
     }
   ],
   permissions: [
-    "storage",
-    "webNavigation"
+    "storage"
   ]
 };
 
