@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import "@pages/options/Options.css";
-import { OPTIONS } from "@pages/common/constants";
+import { OPTIONS } from "@pages/content/constants";
 
 const Options: React.FC = () => {
   const [isOnAutoBookMark, setIsOnAutoBookMark] = React.useState(true);

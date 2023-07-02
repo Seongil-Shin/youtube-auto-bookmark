@@ -1,60 +1,18 @@
-const OPTIONS = {
-  AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK",
-};
+import init from "@pages/content/init";
+import { getVideoElement } from "@pages/content/utils";
 
-let optionChecked = false;
-let isOnAutoBookMark = false;
+let options = {
+  isOnAutoBookMark: false,
+  optionChecked: false
+};
 let intervalIdList = [];
 
-function init() {
-  checkOption();
-  deleteOldData();
-}
-init();
-
-function checkOption() {
-  const intervalId = setInterval(() => {
-    if (chrome.runtime?.id) {
-      chrome.storage.local.get([OPTIONS.AUTO_BOOKMARk]).then((result) => {
-        if (
-          result[OPTIONS.AUTO_BOOKMARk] === "ON" ||
-          result[OPTIONS.AUTO_BOOKMARk] === undefined
-        ) {
-          isOnAutoBookMark = true;
-          chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARk]: "ON" });
-        }
-        clearInterval(intervalId);
-        optionChecked = true;
-      });
-    }
-  }, 500);
-}
-
-function deleteOldData() {
-  const oneMonthMilliSeconds = 30 * 24 * 60 * 60 * 1000;
-  const intervalId = setInterval(() => {
-    if (chrome.runtime?.id) {
-      chrome.storage.local.get(null, (result) => {
-        const shouldRemove = [];
-        const oneMonthBefore = Date.now() - oneMonthMilliSeconds;
-        Object.entries(result).forEach(([key, value]) => {
-          if (
-            key !== OPTIONS.AUTO_BOOKMARk &&
-            value.lastUpdated < oneMonthBefore
-          ) {
-            shouldRemove.push(key);
-          }
-        });
-        chrome.storage.local.remove(shouldRemove);
-      });
-      clearInterval(intervalId);
-    }
-  }, 500);
-}
+init().then((value) => {
+  options = value;
+});
 
 function goToLastSecond(videoId) {
-  console.log("goToLastSeconds", isOnAutoBookMark);
-  if (!isOnAutoBookMark) {
+  if (!options.isOnAutoBookMark) {
     return;
   }
 
@@ -79,8 +37,7 @@ function goToLastSecond(videoId) {
 }
 
 function recordEndTime(videoId) {
-  console.log("recordEndTime", isOnAutoBookMark);
-  if (!isOnAutoBookMark) {
+  if (!options.isOnAutoBookMark) {
     return;
   }
 
@@ -96,27 +53,19 @@ function recordEndTime(videoId) {
         return chrome.storage.local.set({
           [videoId]: {
             seconds: 0,
-            lastUpdated: Date.now(),
-          },
+            lastUpdated: Date.now()
+          }
         });
       }
       chrome.storage.local.set({
         [videoId]: {
           seconds: Math.floor(video.currentTime),
-          lastUpdated: Date.now(),
-        },
+          lastUpdated: Date.now()
+        }
       });
     }
   }, 1000);
   intervalIdList.push(intervalId);
-}
-
-function getVideoElement() {
-  const video = document.querySelector("video.video-stream");
-  if (video === null) {
-    return null;
-  }
-  return video as HTMLMediaElement;
 }
 
 document.addEventListener("yt-navigate-finish", (e) => {
@@ -133,7 +82,7 @@ document.addEventListener("yt-navigate-finish", (e) => {
 if (location.pathname.includes("watch")) {
   const videoId = document.location.href.split("v=")?.at(1)?.split("&")[0];
   const intervalId = setInterval(() => {
-    if (optionChecked) {
+    if (options.optionChecked) {
       goToLastSecond(videoId);
       clearInterval(intervalId);
     }
