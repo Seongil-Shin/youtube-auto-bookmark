@@ -6,11 +6,20 @@ let optionChecked = false;
 let isOnAutoBookMark = false;
 let intervalIdList = [];
 
+function init() {
+  checkOption();
+  deleteOldData();
+}
+init();
+
 function checkOption() {
   const intervalId = setInterval(() => {
     if (chrome.runtime?.id) {
       chrome.storage.local.get([OPTIONS.AUTO_BOOKMARk]).then((result) => {
-        if (result[OPTIONS.AUTO_BOOKMARk] === "ON") {
+        if (
+          result[OPTIONS.AUTO_BOOKMARk] === "ON" ||
+          result[OPTIONS.AUTO_BOOKMARk] === undefined
+        ) {
           isOnAutoBookMark = true;
           chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARk]: "ON" });
         }
@@ -19,12 +28,32 @@ function checkOption() {
       });
     }
   }, 500);
-  intervalIdList.push(intervalId);
 }
 
-checkOption();
+function deleteOldData() {
+  const oneMonthMilliSeconds = 30 * 24 * 60 * 60 * 1000;
+  const intervalId = setInterval(() => {
+    if (chrome.runtime?.id) {
+      chrome.storage.local.get(null, (result) => {
+        const shouldRemove = [];
+        const oneMonthBefore = Date.now() - oneMonthMilliSeconds;
+        Object.entries(result).forEach(([key, value]) => {
+          if (
+            key !== OPTIONS.AUTO_BOOKMARk &&
+            value.lastUpdated < oneMonthBefore
+          ) {
+            shouldRemove.push(key);
+          }
+        });
+        chrome.storage.local.remove(shouldRemove);
+      });
+      clearInterval(intervalId);
+    }
+  }, 500);
+}
 
 function goToLastSecond(videoId) {
+  console.log("goToLastSeconds", isOnAutoBookMark);
   if (!isOnAutoBookMark) {
     return;
   }
@@ -37,9 +66,9 @@ function goToLastSecond(videoId) {
 
     if (video !== null && video.played) {
       chrome.storage.local.get([videoId]).then((result) => {
-        const savedTime = result[videoId];
-        if (savedTime && video.currentTime < savedTime) {
-          video.currentTime = savedTime;
+        const savedData = result[videoId];
+        if (savedData && video.currentTime < savedData.seconds) {
+          video.currentTime = savedData.seconds;
         }
         recordEndTime(videoId);
       });
@@ -50,6 +79,7 @@ function goToLastSecond(videoId) {
 }
 
 function recordEndTime(videoId) {
+  console.log("recordEndTime", isOnAutoBookMark);
   if (!isOnAutoBookMark) {
     return;
   }
@@ -63,9 +93,19 @@ function recordEndTime(videoId) {
     if (video !== null && video.currentTime) {
       // 영상 마지막 부근이면, 시작 지점 저장
       if (video.duration - 5 <= video.currentTime) {
-        return chrome.storage.local.set({ [videoId]: 0 });
+        return chrome.storage.local.set({
+          [videoId]: {
+            seconds: 0,
+            lastUpdated: Date.now(),
+          },
+        });
       }
-      chrome.storage.local.set({ [videoId]: Math.floor(video.currentTime) });
+      chrome.storage.local.set({
+        [videoId]: {
+          seconds: Math.floor(video.currentTime),
+          lastUpdated: Date.now(),
+        },
+      });
     }
   }, 1000);
   intervalIdList.push(intervalId);
