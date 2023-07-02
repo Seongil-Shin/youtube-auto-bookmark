@@ -1,5 +1,5 @@
 const OPTIONS = {
-  AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK"
+  AUTO_BOOKMARk: "OPTIONS_AUTO_BOOKMARK",
 };
 
 let optionChecked = false;
@@ -10,16 +10,15 @@ function checkOption() {
   const intervalId = setInterval(() => {
     if (chrome.runtime?.id) {
       chrome.storage.local.get([OPTIONS.AUTO_BOOKMARk]).then((result) => {
-        if (result[OPTIONS.AUTO_BOOKMARk] === "OFF") {
-          clearInterval(intervalId);
-        } else {
+        if (result[OPTIONS.AUTO_BOOKMARk] === "ON") {
           isOnAutoBookMark = true;
           chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARk]: "ON" });
         }
+        clearInterval(intervalId);
         optionChecked = true;
       });
     }
-  });
+  }, 500);
   intervalIdList.push(intervalId);
 }
 
