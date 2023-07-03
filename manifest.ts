@@ -10,13 +10,13 @@ const manifest: chrome.runtime.ManifestV3 = {
   description: packageJson.description,
   options_ui: { page: "src/pages/options/index.html", open_in_tab: false },
   icons: {
-    "128": "icon-128.png",
+    "128": "icon-128.png"
   },
   content_scripts: [
     {
-      matches: ["https://*.youtube.com/*"],
-      js: ["src/pages/content/index.js"],
-    },
+      matches: ["https://www.youtube.com/*", "https://youtube.com/*"],
+      js: ["src/pages/content/index.js"]
+    }
   ],
   devtools_page: "src/pages/devtools/index.html",
   web_accessible_resources: [
@@ -25,12 +25,12 @@ const manifest: chrome.runtime.ManifestV3 = {
         "assets/js/*.js",
         "assets/css/*.css",
         "icon-128.png",
-        "icon-34.png",
+        "icon-34.png"
       ],
-      matches: ["*://*/*"],
-    },
+      matches: ["*://*/*"]
+    }
   ],
-  permissions: ["storage", "unlimitedStorage"],
+  permissions: ["storage", "unlimitedStorage"]
 };
 
 export default manifest;

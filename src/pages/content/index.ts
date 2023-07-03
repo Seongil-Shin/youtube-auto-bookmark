@@ -1,5 +1,5 @@
-import init from "@pages/content/init";
 import { getVideoElement } from "@pages/content/utils";
+import init from "@pages/content/init";
 
 let options = {
   isOnAutoBookMark: false,

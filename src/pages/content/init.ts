@@ -1,4 +1,6 @@
-import { OPTIONS } from "@pages/content/constants";
+const OPTIONS = {
+  AUTO_BOOKMARK: "OPTIONS_AUTO_BOOKMARK"
+};
 
 function checkOption(): Promise<{
   isOnAutoBookMark: boolean;
@@ -9,13 +11,13 @@ function checkOption(): Promise<{
   return new Promise((resolve) => {
     const intervalId = setInterval(() => {
       if (chrome.runtime?.id) {
-        chrome.storage.local.get([OPTIONS.AUTO_BOOKMARk]).then((result) => {
+        chrome.storage.local.get([OPTIONS.AUTO_BOOKMARK]).then((result) => {
           if (
-            result[OPTIONS.AUTO_BOOKMARk] === "ON" ||
-            result[OPTIONS.AUTO_BOOKMARk] === undefined
+            result[OPTIONS.AUTO_BOOKMARK] === "ON" ||
+            result[OPTIONS.AUTO_BOOKMARK] === undefined
           ) {
             isOnAutoBookMark = true;
-            chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARk]: "ON" });
+            chrome.storage.local.set({ [OPTIONS.AUTO_BOOKMARK]: "ON" });
           }
           clearInterval(intervalId);
           optionChecked = true;
@@ -35,7 +37,7 @@ function deleteOldData() {
         const oneMonthBefore = Date.now() - oneMonthMilliSeconds;
         Object.entries(result).forEach(([key, value]) => {
           if (
-            key !== OPTIONS.AUTO_BOOKMARk &&
+            key !== OPTIONS.AUTO_BOOKMARK &&
             value.lastUpdated < oneMonthBefore
           ) {
             shouldRemove.push(key);
@@ -49,8 +51,8 @@ function deleteOldData() {
 }
 
 export default async function init(): Promise<{
-  isOnAutoBookMark: boolean,
-  optionChecked: boolean,
+  isOnAutoBookMark: boolean;
+  optionChecked: boolean;
 }> {
   deleteOldData();
   return await checkOption();
